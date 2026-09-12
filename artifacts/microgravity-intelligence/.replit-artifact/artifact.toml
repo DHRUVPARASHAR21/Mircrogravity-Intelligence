@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Microgravity Intelligence"
+description = "A research and commercial intelligence platform that connects microgravity experiments to evidence, organizations, missions, technologies, and commercial opportunities for founders, investors, and research teams."
+version = "1.0.0"
+id = "artifacts/microgravity-intelligence"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18187
+
+[services.development]
+run = "pnpm --filter @workspace/microgravity-intelligence run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/microgravity-intelligence", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/microgravity-intelligence/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18187"
+BASE_PATH = "/"
