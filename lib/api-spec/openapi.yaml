@@ -1,0 +1,812 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Microgravity Intelligence research and commercial intelligence API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: experiments
+    description: Sourced microgravity experiment records
+  - name: organizations
+    description: Research organizations
+  - name: missions
+    description: Missions and platforms
+  - name: technologies
+    description: Technologies and mechanisms
+  - name: opportunities
+    description: Commercial opportunity intelligence
+  - name: analytics
+    description: Database-backed analytics and overview
+  - name: search
+    description: Global search
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /experiments:
+    get:
+      operationId: listExperiments
+      tags: [experiments]
+      summary: List sourced experiments
+      parameters:
+        - $ref: "#/components/parameters/SearchQuery"
+        - name: domain
+          in: query
+          schema: { type: string }
+        - name: subdomain
+          in: query
+          schema: { type: string }
+        - name: organizationId
+          in: query
+          schema: { type: integer }
+        - name: country
+          in: query
+          schema: { type: string }
+        - name: platformId
+          in: query
+          schema: { type: integer }
+        - name: yearFrom
+          in: query
+          schema: { type: integer }
+        - name: yearTo
+          in: query
+          schema: { type: integer }
+        - name: trlMin
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 9 }
+        - name: commercialized
+          in: query
+          schema: { type: boolean }
+        - name: mechanism
+          in: query
+          schema: { type: string }
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+        - $ref: "#/components/parameters/Sort"
+      responses:
+        "200":
+          description: Paginated experiments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExperimentListResponse"
+  /experiments/export:
+    get:
+      operationId: exportExperiments
+      tags: [experiments]
+      summary: Export filtered experiments as CSV
+      parameters:
+        - $ref: "#/components/parameters/SearchQuery"
+        - name: domain
+          in: query
+          schema: { type: string }
+        - name: verificationStatus
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: CSV export
+          content:
+            text/csv:
+              schema: { type: string }
+  /experiments/{id}:
+    get:
+      operationId: getExperiment
+      tags: [experiments]
+      summary: Get an experiment with evidence and related intelligence
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Experiment detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExperimentDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /organizations:
+    get:
+      operationId: listOrganizations
+      tags: [organizations]
+      summary: List organizations
+      parameters:
+        - $ref: "#/components/parameters/SearchQuery"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Organizations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationListResponse"
+  /organizations/{id}:
+    get:
+      operationId: getOrganization
+      tags: [organizations]
+      summary: Get an organization portfolio
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Organization detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrganizationDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /missions:
+    get:
+      operationId: listMissions
+      tags: [missions]
+      summary: List missions
+      parameters:
+        - $ref: "#/components/parameters/SearchQuery"
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Missions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionListResponse"
+  /missions/{id}:
+    get:
+      operationId: getMission
+      tags: [missions]
+      summary: Get a mission with experiments
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Mission detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MissionDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /platforms:
+    get:
+      operationId: listPlatforms
+      tags: [missions]
+      summary: List research platforms
+      responses:
+        "200":
+          description: Platforms
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Platform"
+  /technologies:
+    get:
+      operationId: listTechnologies
+      tags: [technologies]
+      summary: List technologies
+      parameters:
+        - $ref: "#/components/parameters/SearchQuery"
+      responses:
+        "200":
+          description: Technologies
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Technology"
+  /technologies/{id}:
+    get:
+      operationId: getTechnology
+      tags: [technologies]
+      summary: Get a technology portfolio
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Technology detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TechnologyDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /opportunities:
+    get:
+      operationId: listOpportunities
+      tags: [opportunities]
+      summary: List commercial opportunities
+      parameters:
+        - $ref: "#/components/parameters/SearchQuery"
+        - name: domain
+          in: query
+          schema: { type: string }
+        - name: market
+          in: query
+          schema: { type: string }
+        - name: stage
+          in: query
+          schema: { type: string }
+        - $ref: "#/components/parameters/Page"
+        - $ref: "#/components/parameters/PageSize"
+      responses:
+        "200":
+          description: Commercial opportunities
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpportunityListResponse"
+  /opportunities/{id}:
+    get:
+      operationId: getOpportunity
+      tags: [opportunities]
+      summary: Get a commercial opportunity with evidence
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Opportunity detail
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpportunityDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /sources:
+    get:
+      operationId: listSources
+      tags: [search]
+      summary: List evidence sources
+      parameters:
+        - $ref: "#/components/parameters/SearchQuery"
+        - name: experimentId
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Sources
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Source"
+  /admin/import:
+    post:
+      operationId: importExperiments
+      tags: [experiments]
+      summary: Import experiments from CSV in protected admin mode
+      parameters:
+        - name: X-Admin-Password
+          in: header
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CsvImportInput"
+      responses:
+        "200":
+          description: Import report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CsvImportReport"
+        "401":
+          description: Invalid admin password
+        "503":
+          description: Admin mode is not configured
+  /search:
+    get:
+      operationId: globalSearch
+      tags: [search]
+      summary: Search across intelligence records
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string, minLength: 2 }
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 30, default: 10 }
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SearchResult"
+  /analytics/overview:
+    get:
+      operationId: getAnalyticsOverview
+      tags: [analytics]
+      summary: Get executive overview analytics
+      responses:
+        "200":
+          description: Overview metrics and ranked data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsOverview"
+  /analytics/domains:
+    get:
+      operationId: getDomainAnalytics
+      tags: [analytics]
+      summary: Get experiments grouped by domain
+      responses:
+        "200":
+          description: Domain aggregates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CountMetric"
+  /analytics/timeline:
+    get:
+      operationId: getTimelineAnalytics
+      tags: [analytics]
+      summary: Get experiments grouped by year
+      responses:
+        "200":
+          description: Timeline aggregates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CountMetric"
+  /analytics/organizations:
+    get:
+      operationId: getOrganizationAnalytics
+      tags: [analytics]
+      summary: Get top organizations
+      responses:
+        "200":
+          description: Organization aggregates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RankedMetric"
+  /analytics/platforms:
+    get:
+      operationId: getPlatformAnalytics
+      tags: [analytics]
+      summary: Get platform aggregates
+      responses:
+        "200":
+          description: Platform aggregates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RankedMetric"
+  /analytics/white-spaces:
+    get:
+      operationId: getWhiteSpaceAnalytics
+      tags: [analytics]
+      summary: Get research activity versus market potential
+      responses:
+        "200":
+          description: White space matrix data
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/WhiteSpacePoint"
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+    SearchQuery:
+      name: search
+      in: query
+      schema: { type: string }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSize:
+      name: pageSize
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    Sort:
+      name: sort
+      in: query
+      schema:
+        type: string
+        enum: [year, commercialRelevance, name]
+        default: commercialRelevance
+  responses:
+    NotFound:
+      description: Record not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+    Pagination:
+      type: object
+      required: [page, pageSize, totalPages, total]
+      properties:
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+        total: { type: integer }
+    ScoreBreakdown:
+      type: object
+      required: [total, confidence, microgravityAdvantage, marketPotential, experimentalEvidence, commercializationPath, industryDemand, ipPotential]
+      properties:
+        total: { type: integer, minimum: 0, maximum: 100 }
+        confidence: { type: string, enum: [High, Medium, Low] }
+        microgravityAdvantage: { type: integer, minimum: 0, maximum: 20 }
+        marketPotential: { type: integer, minimum: 0, maximum: 20 }
+        experimentalEvidence: { type: integer, minimum: 0, maximum: 15 }
+        commercializationPath: { type: integer, minimum: 0, maximum: 15 }
+        industryDemand: { type: integer, minimum: 0, maximum: 10 }
+        ipPotential: { type: integer, minimum: 0, maximum: 10 }
+    Source:
+      type: object
+      required: [id, sourceName, sourceType, verificationStatus, sourceQuality, notes]
+      properties:
+        id: { type: integer }
+        sourceName: { type: string }
+        sourceType: { type: string }
+        url: { type: ["string", "null"], format: uri }
+        publisher: { type: ["string", "null"] }
+        publicationDate: { type: ["string", "null"] }
+        accessDate: { type: ["string", "null"] }
+        verificationStatus: { type: string, enum: [Verified, "Partially Verified", "Needs Verification", Unverified] }
+        sourceQuality: { type: string, enum: [Primary, Secondary, Tertiary] }
+        notes: { type: string }
+    OrganizationSummary:
+      type: object
+      required: [id, name, organizationType, country, experimentCount, domainCount]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        organizationType: { type: string }
+        country: { type: string }
+        experimentCount: { type: integer }
+        domainCount: { type: integer }
+        commercialFocus: { type: ["string", "null"] }
+    OrganizationDetail:
+      allOf:
+        - $ref: "#/components/schemas/OrganizationSummary"
+        - type: object
+          required: [description, website, experiments, publications, patents]
+          properties:
+            description: { type: string }
+            website: { type: ["string", "null"], format: uri }
+            foundedYear: { type: ["integer", "null"] }
+            experiments:
+              type: array
+              items: { $ref: "#/components/schemas/ExperimentSummary" }
+            publications:
+              type: array
+              items: { type: string }
+            patents:
+              type: array
+              items: { type: string }
+    MissionSummary:
+      type: object
+      required: [id, name, missionType, platformName, launchDate, experimentCount]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        missionType: { type: string }
+        missionNumber: { type: ["string", "null"] }
+        launchDate: { type: ["string", "null"] }
+        returnDate: { type: ["string", "null"] }
+        platformName: { type: string }
+        experimentCount: { type: integer }
+    MissionDetail:
+      allOf:
+        - $ref: "#/components/schemas/MissionSummary"
+        - type: object
+          required: [destination, launchVehicle, description, experiments]
+          properties:
+            destination: { type: string }
+            launchVehicle: { type: string }
+            description: { type: string }
+            experiments:
+              type: array
+              items: { $ref: "#/components/schemas/ExperimentSummary" }
+    Platform:
+      type: object
+      required: [id, name, platformType, operator, country, experimentCount]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        platformType: { type: string }
+        operator: { type: string }
+        country: { type: string }
+        description: { type: string }
+        experimentCount: { type: integer }
+    Technology:
+      type: object
+      required: [id, name, technologyCategory, mechanism, trl, commercialRelevance]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        technologyCategory: { type: string }
+        mechanism: { type: string }
+        description: { type: string }
+        trl: { type: ["integer", "null"] }
+        commercialRelevance: { type: ["integer", "null"] }
+    TechnologyDetail:
+      allOf:
+        - $ref: "#/components/schemas/Technology"
+        - type: object
+          required: [experiments, organizations, publications, patents, applications]
+          properties:
+            experiments:
+              type: array
+              items: { $ref: "#/components/schemas/ExperimentSummary" }
+            organizations:
+              type: array
+              items: { type: string }
+            publications:
+              type: array
+              items: { type: string }
+            patents:
+              type: array
+              items: { type: string }
+            applications:
+              type: array
+              items: { type: string }
+    ExperimentSummary:
+      type: object
+      required: [id, experimentCode, name, organizationName, platformName, year, domain, commercialRelevance, confidence, verificationStatus]
+      properties:
+        id: { type: integer }
+        experimentCode: { type: string }
+        name: { type: string }
+        organizationName: { type: string }
+        organizationId: { type: integer }
+        missionName: { type: ["string", "null"] }
+        platformName: { type: string }
+        year: { type: ["integer", "null"] }
+        domain: { type: string }
+        subdomain: { type: ["string", "null"] }
+        country: { type: string }
+        durationHours: { type: ["number", "null"] }
+        trl: { type: ["integer", "null"] }
+        commercialRelevance: { type: ["integer", "null"] }
+        confidence: { type: string, enum: [High, Medium, Low] }
+        verificationStatus: { type: string, enum: [Verified, "Partially Verified", "Needs Verification", Unverified] }
+    ExperimentDetail:
+      allOf:
+        - $ref: "#/components/schemas/ExperimentSummary"
+        - type: object
+          required: [shortDescription, fullDescription, objective, researchQuestion, hypothesis, hardware, biologicalSystem, materialSystem, experimentalMethod, gravityEnvironment, mechanisms, resultSummary, resultSignificance, commercialApplication, commercialMarket, potentialCustomer, commercializationStatus, scoreBreakdown, sources, relatedExperiments, relatedOrganizations, relatedTechnologies, whyThisMatters]
+          properties:
+            shortDescription: { type: string }
+            fullDescription: { type: string }
+            objective: { type: string }
+            researchQuestion: { type: string }
+            hypothesis: { type: string }
+            hardware: { type: string }
+            biologicalSystem: { type: string }
+            materialSystem: { type: string }
+            experimentalMethod: { type: string }
+            gravityEnvironment: { type: string }
+            controlGroup: { type: string }
+            earthControlAvailable: { type: ["boolean", "null"] }
+            mechanisms:
+              type: array
+              items: { type: string }
+            resultSummary: { type: string }
+            resultSignificance: { type: string }
+            commercialApplication: { type: string }
+            commercialMarket: { type: string }
+            potentialCustomer: { type: string }
+            commercializationStatus: { type: string }
+            scoreBreakdown: { $ref: "#/components/schemas/ScoreBreakdown" }
+            sources:
+              type: array
+              items: { $ref: "#/components/schemas/Source" }
+            relatedExperiments:
+              type: array
+              items: { $ref: "#/components/schemas/ExperimentSummary" }
+            relatedOrganizations:
+              type: array
+              items: { $ref: "#/components/schemas/OrganizationSummary" }
+            relatedTechnologies:
+              type: array
+              items: { $ref: "#/components/schemas/Technology" }
+            relatedOpportunity:
+              oneOf:
+                - $ref: "#/components/schemas/OpportunitySummary"
+                - type: "null"
+            whyThisMatters: { type: string }
+    ExperimentListResponse:
+      type: object
+      required: [items, pagination]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/ExperimentSummary" }
+        pagination: { $ref: "#/components/schemas/Pagination" }
+    OrganizationListResponse:
+      type: object
+      required: [items, pagination]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/OrganizationSummary" }
+        pagination: { $ref: "#/components/schemas/Pagination" }
+    MissionListResponse:
+      type: object
+      required: [items, pagination]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/MissionSummary" }
+        pagination: { $ref: "#/components/schemas/Pagination" }
+    OpportunitySummary:
+      type: object
+      required: [id, title, domain, market, stage, researchActivity, commercialActivity, opportunityScore, confidence]
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        domain: { type: string }
+        market: { type: string }
+        stage: { type: string }
+        researchActivity: { type: integer }
+        commercialActivity: { type: integer }
+        opportunityScore: { type: integer }
+        confidence: { type: string, enum: [High, Medium, Low] }
+    OpportunityDetail:
+      allOf:
+        - $ref: "#/components/schemas/OpportunitySummary"
+        - type: object
+          required: [description, problem, whyMicrogravity, evidence, potentialCustomers, existingCompetitors, marketSize, trl, commercializationPathway, risks, assumptions, experiments, sources]
+          properties:
+            description: { type: string }
+            problem: { type: string }
+            whyMicrogravity: { type: string }
+            evidence: { type: string }
+            potentialCustomers: { type: string }
+            existingCompetitors: { type: string }
+            marketSize: { type: string }
+            trl: { type: ["integer", "null"] }
+            commercializationPathway: { type: string }
+            risks: { type: string }
+            assumptions: { type: string }
+            experiments:
+              type: array
+              items: { $ref: "#/components/schemas/ExperimentSummary" }
+            sources:
+              type: array
+              items: { $ref: "#/components/schemas/Source" }
+    OpportunityListResponse:
+      type: object
+      required: [items, pagination]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/OpportunitySummary" }
+        pagination: { $ref: "#/components/schemas/Pagination" }
+    CountMetric:
+      type: object
+      required: [label, value]
+      properties:
+        label: { type: string }
+        value: { type: integer }
+    RankedMetric:
+      type: object
+      required: [id, label, value]
+      properties:
+        id: { type: integer }
+        label: { type: string }
+        value: { type: integer }
+        secondaryValue: { type: ["integer", "null"] }
+    WhiteSpacePoint:
+      type: object
+      required: [id, label, researchActivity, marketPotential, opportunityScore, quadrant]
+      properties:
+        id: { type: integer }
+        label: { type: string }
+        researchActivity: { type: integer }
+        marketPotential: { type: integer }
+        opportunityScore: { type: integer }
+        quadrant: { type: string }
+    AnalyticsOverview:
+      type: object
+      required: [experiments, organizations, countries, platforms, domains, timeline, topOrganizations, topOpportunities, platformMix, whiteSpaces]
+      properties:
+        experiments: { type: integer }
+        organizations: { type: integer }
+        countries: { type: integer }
+        platforms: { type: integer }
+        domains:
+          type: array
+          items: { $ref: "#/components/schemas/CountMetric" }
+        timeline:
+          type: array
+          items: { $ref: "#/components/schemas/CountMetric" }
+        topOrganizations:
+          type: array
+          items: { $ref: "#/components/schemas/RankedMetric" }
+        topOpportunities:
+          type: array
+          items: { $ref: "#/components/schemas/OpportunitySummary" }
+        platformMix:
+          type: array
+          items: { $ref: "#/components/schemas/RankedMetric" }
+        whiteSpaces:
+          type: array
+          items: { $ref: "#/components/schemas/WhiteSpacePoint" }
+    SearchResult:
+      type: object
+      required: [type, id, title, subtitle, relevance]
+      properties:
+        type: { type: string, enum: [experiment, organization, mission, technology, opportunity] }
+        id: { type: integer }
+        title: { type: string }
+        subtitle: { type: string }
+        year: { type: ["integer", "null"] }
+        domain: { type: ["string", "null"] }
+        relevance: { type: integer }
+    CsvImportInput:
+      type: object
+      required: [csv]
+      properties:
+        csv: { type: string, minLength: 1 }
+    CsvImportReport:
+      type: object
+      required: [rowsImported, rowsRejected, missingRequiredFields, duplicateRecords, invalidValues, recordsRequiringVerification, errors]
+      properties:
+        rowsImported: { type: integer }
+        rowsRejected: { type: integer }
+        missingRequiredFields: { type: integer }
+        duplicateRecords: { type: integer }
+        invalidValues: { type: integer }
+        recordsRequiringVerification: { type: integer }
+        errors:
+          type: array
+          items: { type: string }
+
